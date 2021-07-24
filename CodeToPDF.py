@@ -1,6 +1,8 @@
 import subprocess
 import csv
 import os
+import shutil
+from enum import Enum
 #コマンドプロント上で以下を実行しインストールする。
 #python -m pip install pywin32
 #バージョンアップも必要かも
@@ -10,13 +12,15 @@ path_Null = 'null.txt'
 path_Before = 'target/Before/'
 path_After  = 'target/After/'
 path_Output = 'target/Output/'
+path_OutputTmp = path_Output+'tmp'
 path_DiffList = 'target/Output/DiffList.csv'
 path_Winmerge = r'C:/Program Files/WinMerge/WinMergeU.exe'
-tag_directory_Diff = 'フォルダーは異なっています'
-tag_directory_Same = '同一'
+
+#比較結果判定用文字列
 tag_File_Same = 'テキスト ファイルは同一です'
 tag_File_OnlyBefore = '左側のみ'
 tag_File_OnlyAfter = '右側のみ'
+
 
 def main():
     #絶対パスに変更
@@ -24,6 +28,7 @@ def main():
     abspath_Before = os.path.abspath(path_Before)
     abspath_After  = os.path.abspath(path_After)
     abspath_Output = os.path.abspath(path_Output)
+    abspath_OutputTmp = os.path.abspath(path_OutputTmp)
     abspath_DiffList  = os.path.abspath(path_DiffList)
 
     #フォルダ比較結果をCSVで出力
@@ -31,6 +36,9 @@ def main():
     print('Before='+abspath_Before)
     print('After ='+abspath_After)
 
+    shutil.rmtree(abspath_Output)
+    os.makedirs(abspath_OutputTmp)
+    
     subprocess.run( [\
         path_Winmerge, \
         abspath_Before, \
@@ -51,8 +59,6 @@ def main():
         reader = csv.reader(f)
         DiffList = [row for row in reader]
 
-
-    print(len(DiffList))
     for i in range(len(DiffList)):
         #テスト：出力先htmlの文字列生成
         subfolder = ''
@@ -62,25 +68,37 @@ def main():
         path_File_PDF        =  ''
         if (i > 3) & (len(DiffList[i]) > 1):
             if (DiffList[i][5] != "") & (DiffList[i][2] != tag_File_Same):
-                subfolder = '/'+DiffList[i][1]
-                path_File_After      = abspath_After +subfolder+'/' +DiffList[i][0]
-                path_File_Before     = abspath_Before+subfolder+'/' +DiffList[i][0]
-                if(DiffList[i][2][0:4] == tag_File_OnlyAfter):
+                #サブフォルダのパスとフォルダ出力用のサブフォルダ名生成
+                if(DiffList[i][1] != ''):
+                    subfolder = '\\'+DiffList[i][1]
+                    subfoldername = subfolder+'＞'
+                else:
+                    subfolder = ''
+                    subfoldername = ''
+
+                #比較ファイルのパス生成
+                #片方しかない場合はnull.txtと比較する。
+                if(DiffList[i][2].startswith(tag_File_OnlyAfter)):
+                    path_File_After      = abspath_After +subfolder+'\\' +DiffList[i][0]
                     path_File_Before     = abspath_Null
-                if(DiffList[i][2][0:4] == tag_File_OnlyBefore):
+                elif(DiffList[i][2].startswith(tag_File_OnlyBefore)):
                     path_File_After      = abspath_Null
-                path_File_Report     = abspath_Output+"/tmp"+subfolder+'＞'+DiffList[i][0]+'.html'
-                path_File_PDF        = abspath_Output+subfolder+'＞'+DiffList[i][0]+'.pdf'
+                    path_File_Before     = abspath_Before+subfolder+'\\' +DiffList[i][0]
+                else:
+                    path_File_After      = abspath_After +subfolder+'\\' +DiffList[i][0]
+                    path_File_Before     = abspath_Before+subfolder+'\\' +DiffList[i][0]
 
-                print(i.__str__()+":"+DiffList[i][2][0:4])
-                print(" :"+path_File_Before)
-                print(" :"+path_File_After)
+                #出力ファイルパス生成
+                path_File_Report     = abspath_OutputTmp+subfoldername+DiffList[i][0]+'.html'
+                path_File_PDF        = abspath_Output+subfoldername+DiffList[i][0]+'.pdf'
 
+                #比較レポート生成(csvファイル生成)
                 MakeDiff_ReportFile( \
                     path_File_Before, \
                     path_File_After, \
                     path_File_Report)
 
+                #PDFへ変換
                 HtmlToPDF(path_File_Report,path_File_PDF)
 
 #ファイル比較レポート出力(HTML形式)
