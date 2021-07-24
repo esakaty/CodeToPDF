@@ -13,9 +13,9 @@ subprocess.run([r'C:/Program Files/WinMerge/WinMergeU.exe', \
 	'-cfg', 'ReportFiles/IncludeFileCmpReport=1', \
 	'-r', \
 	'-u', \
-	'-or', 'target/out.html'])
+	'-or', 'target/out.csv'])
 
-with open('target/out.html') as f:
+with open('target/out.csv') as f:
     reader = csv.reader(f)
     for row in reader:
         print(row)
