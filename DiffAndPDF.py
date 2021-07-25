@@ -31,7 +31,7 @@ tag_File_OnlyBefore = '左側のみ'
 tag_File_OnlyAfter = '右側のみ'
 
 
-def main():
+def TestMain():
     path_Before = 'target/Before/'
     path_After  = 'target/After/'
     path_Output = 'target/Output/'
@@ -46,11 +46,11 @@ def CodeToPdf(abspath_Before,abspath_After,abspath_Output):
     abspath_OutputTmp = os.path.abspath(abspath_Output+'/tmp')
     abspath_DiffList  = os.path.abspath(path_DiffList)
 
-    #フォルダ比較結果をCSVで出力
     print('以下フォルダの差分を取得します。')
     print('Before='+abspath_Before)
     print('After ='+abspath_After)
 
+    #出力先フォルダの削除
     try:
         shutil.rmtree(abspath_Output)
         os.makedirs(abspath_OutputTmp)
@@ -58,6 +58,7 @@ def CodeToPdf(abspath_Before,abspath_After,abspath_Output):
         print('Error001:Outputフォルダを削除できませんでした。')
         exit( )
     
+    #フォルダ比較結果をCSVで出力
     subprocess.run( [\
         path_Winmerge, \
         abspath_Before, \
@@ -166,4 +167,4 @@ def HtmlToPDF_with_Excel(HtmlFile,PDFFile):
     file.Close(SaveChanges=False)
 
 #実行
-main()
+TestMain()
