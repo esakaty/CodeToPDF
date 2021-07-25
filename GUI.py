@@ -41,7 +41,7 @@ if __name__ == "__main__":
 
     # rootの作成
     root = Tk()
-    root.title("Diff and PDF")Diff and
+    root.title("Diff and PDF")
 
     # Frame1の作成
     frame1 = ttk.Frame(root, padding=10)
