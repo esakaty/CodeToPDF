@@ -13,6 +13,14 @@ from enum import Enum
 #python -m pip install pywin32 -U
 import win32com.client 
 
+#exe化はpyinstallerを使用
+#インストールは以下
+#pip install pyinstaller
+#実行はコマンドプロンプトで
+#pyinstaller CodeToPDF.py --onefile  
+#
+#
+
 path_Null = 'null.txt'
 path_DiffList = 'target/Output/DiffList.csv'
 path_Winmerge = r'C:/Program Files/WinMerge/WinMergeU.exe'
