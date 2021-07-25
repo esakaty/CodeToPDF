@@ -6,6 +6,7 @@ import csv
 import os
 import shutil
 from enum import Enum
+from tkinter import messagebox
 
 #コマンドプロント上で以下を実行しインストールする。
 #python -m pip install pywin32
@@ -22,7 +23,6 @@ import win32com.client
 #
 
 path_Null = 'null.txt'
-path_DiffList = 'target/Output/DiffList.csv'
 path_Winmerge = r'C:/Program Files/WinMerge/WinMergeU.exe'
 
 #比較結果判定用文字列
@@ -44,7 +44,7 @@ def CodeToPdf(abspath_Before,abspath_After,abspath_Output):
     #絶対パスに変更
     abspath_Null= os.path.abspath(path_Null)
     abspath_OutputTmp = os.path.abspath(abspath_Output+'/tmp')
-    abspath_DiffList  = os.path.abspath(path_DiffList)
+    abspath_DiffList  = os.path.abspath(abspath_Output+'/DiffList.csv')
 
     print('以下フォルダの差分を取得します。')
     print('Before='+abspath_Before)
@@ -55,8 +55,7 @@ def CodeToPdf(abspath_Before,abspath_After,abspath_Output):
         shutil.rmtree(abspath_Output)
         os.makedirs(abspath_OutputTmp)
     except :
-        print('Error001:Outputフォルダを削除できませんでした。')
-        exit( )
+        raise Exception('Error001:Outputフォルダを削除できませんでした。')
     
     #フォルダ比較結果をCSVで出力
     subprocess.run( [\
@@ -163,8 +162,5 @@ def HtmlToPDF_with_Excel(HtmlFile,PDFFile):
     try:
         file.ActiveSheet.ExportAsFixedFormat(0,PDFFile)
     except :
-        print('Error002:PDF出力できませんでした。')
+        raise Exception('Error002:PDF出力できませんでした。')
     file.Close(SaveChanges=False)
-
-#実行
-TestMain()
