@@ -14,10 +14,6 @@ from enum import Enum
 import win32com.client 
 
 path_Null = 'null.txt'
-path_Before = 'target/Before/'
-path_After  = 'target/After/'
-path_Output = 'target/Output/'
-path_OutputTmp = path_Output+'tmp'
 path_DiffList = 'target/Output/DiffList.csv'
 path_Winmerge = r'C:/Program Files/WinMerge/WinMergeU.exe'
 
@@ -28,12 +24,18 @@ tag_File_OnlyAfter = '右側のみ'
 
 
 def main():
-    #絶対パスに変更
-    abspath_Null= os.path.abspath(path_Null)
+    path_Before = 'target/Before/'
+    path_After  = 'target/After/'
+    path_Output = 'target/Output/'
     abspath_Before = os.path.abspath(path_Before)
     abspath_After  = os.path.abspath(path_After)
     abspath_Output = os.path.abspath(path_Output)
-    abspath_OutputTmp = os.path.abspath(path_OutputTmp)
+    CodeToPdf(abspath_Before,abspath_After,abspath_Output)
+    
+def CodeToPdf(abspath_Before,abspath_After,abspath_Output):
+    #絶対パスに変更
+    abspath_Null= os.path.abspath(path_Null)
+    abspath_OutputTmp = os.path.abspath(abspath_Output+'/tmp')
     abspath_DiffList  = os.path.abspath(path_DiffList)
 
     #フォルダ比較結果をCSVで出力
@@ -41,8 +43,12 @@ def main():
     print('Before='+abspath_Before)
     print('After ='+abspath_After)
 
-    shutil.rmtree(abspath_Output)
-    os.makedirs(abspath_OutputTmp)
+    try:
+        shutil.rmtree(abspath_Output)
+        os.makedirs(abspath_OutputTmp)
+    except :
+        print('Error001:Outputフォルダを削除できませんでした。')
+        exit( )
     
     subprocess.run( [\
         path_Winmerge, \
@@ -104,7 +110,7 @@ def main():
                     path_File_Report)
 
                 #PDFへ変換
-                HtmlToPDF(path_File_Report,path_File_PDF)
+                HtmlToPDF_with_Excel(path_File_Report,path_File_PDF)
 
 #ファイル比較レポート出力(HTML形式)
 def MakeDiff_ReportFile(Before,After,Output):
@@ -119,7 +125,7 @@ def MakeDiff_ReportFile(Before,After,Output):
         Output])
 
 #HTML→PDF
-def HtmlToPDF(HtmlFile,PDFFile):
+def HtmlToPDF_with_Excel(HtmlFile,PDFFile):
 
     #htmlをエクセルで開く
     excel = win32com.client.Dispatch("Excel.Application")
@@ -147,8 +153,8 @@ def HtmlToPDF(HtmlFile,PDFFile):
 
     try:
         file.ActiveSheet.ExportAsFixedFormat(0,PDFFile)
-    except ZeroDivisionError:
-        print('Error')
+    except :
+        print('Error002:PDF出力できませんでした。')
     file.Close(SaveChanges=False)
 
 #実行
