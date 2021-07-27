@@ -7,6 +7,7 @@ import os
 import shutil
 from enum import Enum
 from tkinter import messagebox
+import pythoncom
 
 #コマンドプロント上で以下を実行しインストールする。
 #python -m pip install pywin32
@@ -40,7 +41,14 @@ def TestMain():
     abspath_Output = os.path.abspath(path_Output)
     CodeToPdf(abspath_Before,abspath_After,abspath_Output)
     
+def getState():
+    return StringState
+
+
 def CodeToPdf(abspath_Before,abspath_After,abspath_Output):
+    global StringState
+    StringState = ''
+
     #絶対パスに変更
     abspath_Null= os.path.abspath(path_Null)
     abspath_OutputTmp = os.path.abspath(abspath_Output+'/tmp')
@@ -49,6 +57,9 @@ def CodeToPdf(abspath_Before,abspath_After,abspath_Output):
     print('以下フォルダの差分を取得します。')
     print('Before='+abspath_Before)
     print('After ='+abspath_After)
+    print('Output='+abspath_Output)
+
+    StringState = '初期化'
 
     #出力先フォルダの削除
     try:
@@ -56,7 +67,7 @@ def CodeToPdf(abspath_Before,abspath_After,abspath_Output):
         os.makedirs(abspath_OutputTmp)
     except :
         raise Exception('Error001:Outputフォルダを削除できませんでした。')
-    
+
     #フォルダ比較結果をCSVで出力
     subprocess.run( [\
         path_Winmerge, \
@@ -90,7 +101,7 @@ def CodeToPdf(abspath_Before,abspath_After,abspath_Output):
                 #サブフォルダのパスとフォルダ出力用のサブフォルダ名生成
                 if(DiffList[i][1] != ''):
                     subfolder     = '\\'+DiffList[i][1]
-                    subfoldername = subfolder+'＞'
+                    subfoldername = '\\'+DiffList[i][1].replace('\\','＞')+'＞'
                 else:
                     subfolder     = ''
                     subfoldername = ''
@@ -112,6 +123,8 @@ def CodeToPdf(abspath_Before,abspath_After,abspath_Output):
                 path_File_PDF        = abspath_Output    + subfoldername + DiffList[i][0] + '.pdf'
 
                 #比較レポート生成(csvファイル生成)
+                
+                StringState ='PDF出力：' + subfoldername + DiffList[i][0]
                 MakeDiff_ReportFile( \
                     path_File_Before, \
                     path_File_After, \
@@ -119,6 +132,8 @@ def CodeToPdf(abspath_Before,abspath_After,abspath_Output):
 
                 #PDFへ変換
                 HtmlToPDF_with_Excel(path_File_Report,path_File_PDF)
+
+    StringState = '完了'
 
 #ファイル比較レポート出力(HTML形式)
 def MakeDiff_ReportFile(Before,After,Output):
@@ -136,6 +151,7 @@ def MakeDiff_ReportFile(Before,After,Output):
 def HtmlToPDF_with_Excel(HtmlFile,PDFFile):
 
     #htmlをエクセルで開く
+    pythoncom.CoInitialize()  # Excelを起動する前にこれを呼び出す
     excel = win32com.client.Dispatch("Excel.Application")
     file = excel.Workbooks.Open(HtmlFile, UpdateLinks=0, ReadOnly=True)
     file.WorkSheets(1).Select()

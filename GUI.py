@@ -5,6 +5,8 @@ from tkinter import ttk
 from tkinter import messagebox
 from tkinter import filedialog
 import DiffAndPDF
+import time
+import threading
 
 def_path_Before = 'target/Before/'
 def_path_After  = 'target/After/'
@@ -14,39 +16,57 @@ def_path_Output = 'target/Output/'
 def dirdialog_clicked():
     iDir = os.path.abspath(os.path.dirname(__file__))
     iDirPath = filedialog.askdirectory(initialdir = iDir)
-    entry1.set(iDirPath)
+    StringVar_path_Before.set(iDirPath)
     
 def dirdialog_clicked2():
     iDir = os.path.abspath(os.path.dirname(__file__))
     iDirPath = filedialog.askdirectory(initialdir = iDir)
-    entry2.set(iDirPath)
+    StringVar_path_After.set(iDirPath)
     
 def dirdialog_clicked3():
     iDir = os.path.abspath(os.path.dirname(__file__))
     iDirPath = filedialog.askdirectory(initialdir = iDir)
-    entry3.set(iDirPath)
+    StringVar_path_Output.set(iDirPath)
     
 # 実行ボタン押下時の実行関数
+
+def StateUpdate():
+    for i in range(100):
+        StringVar_State.set(DiffAndPDF.StringState)
+        time.sleep(1)
+
 def conductMain():
     text = ""
 
-    path_Before = entry1.get()
-    path_After  = entry2.get()
-    path_Output = entry3.get()
+    path_Before = StringVar_path_Before.get()
+    path_After  = StringVar_path_After.get()
+    path_Output = StringVar_path_Output.get()
     
     if (path_Before!='')&(path_After!='')&(path_Output!=''):
         abspath_Before = os.path.abspath(path_Before)
         abspath_After  = os.path.abspath(path_After)
         abspath_Output = os.path.abspath(path_Output)
         try:
-            DiffAndPDF.CodeToPdf(abspath_Before,abspath_After,abspath_Output)
-            messagebox.showinfo("完了", "出力完了しました。")
+            
+            th1 = threading.Thread( \
+                target=DiffAndPDF.CodeToPdf, \
+                args=(abspath_Before,abspath_After,abspath_Output))
+                
+            th2 = threading.Thread( \
+                target=StateUpdate)
+            th1.start()
+            th2.start()
+                
         except Exception as e:
             messagebox.showerror("error", e)
     else:
         messagebox.showerror("error", "パスの指定がありません。")
 
-if __name__ == "__main__":
+def main():
+    global StringVar_path_Before
+    global StringVar_path_After
+    global StringVar_path_Output
+    global StringVar_State
 
     # rootの作成
     root = Tk()
@@ -57,12 +77,12 @@ if __name__ == "__main__":
     frame1.grid(row=0, column=1, sticky=E)
 
     # 「フォルダ参照」ラベルの作成
-    IDirLabel = ttk.Label(frame1, text="フォルダ参照：変更前", padding=(5, 2))
-    IDirLabel.pack(side=LEFT)
+    IDirLabe_Before = ttk.Label(frame1, text="フォルダ参照：変更前", padding=(5, 2))
+    IDirLabe_Before.pack(side=LEFT)
 
     # 「フォルダ参照」エントリーの作成
-    entry1 = StringVar()
-    IDirEntry = ttk.Entry(frame1, textvariable=entry1, width=60)
+    StringVar_path_Before = StringVar()
+    IDirEntry = ttk.Entry(frame1, textvariable=StringVar_path_Before, width=60)
     IDirEntry.insert(0,os.path.abspath(def_path_Before))
     IDirEntry.pack(side=LEFT)
 
@@ -75,12 +95,12 @@ if __name__ == "__main__":
     frame2.grid(row=1, column=1, sticky=E)
 
     # 「ファイル参照」ラベルの作成
-    IFileLabel = ttk.Label(frame2, text="フォルダ参照：変更後", padding=(5, 2))
-    IFileLabel.pack(side=LEFT)
+    IDirLabe_After = ttk.Label(frame2, text="フォルダ参照：変更後", padding=(5, 2))
+    IDirLabe_After.pack(side=LEFT)
 
     # 「ファイル参照」エントリーの作成
-    entry2 = StringVar()
-    IFileEntry = ttk.Entry(frame2, textvariable=entry2, width=60)
+    StringVar_path_After = StringVar()
+    IFileEntry = ttk.Entry(frame2, textvariable=StringVar_path_After, width=60)
     IFileEntry.insert(0,os.path.abspath(def_path_After))
     IFileEntry.pack(side=LEFT)
 
@@ -93,12 +113,12 @@ if __name__ == "__main__":
     frame3.grid(row=2,column=1,sticky=W)
 
     # 「ファイル参照」ラベルの作成
-    IFileLabel = ttk.Label(frame3, text="フォルダ参照：出力　", padding=(5, 2))
-    IFileLabel.pack(side=LEFT)
+    IDirLabe_Output = ttk.Label(frame3, text="フォルダ参照：出力　", padding=(5, 2))
+    IDirLabe_Output.pack(side=LEFT)
 
     # 「ファイル参照」エントリーの作成
-    entry3 = StringVar()
-    IFileEntry = ttk.Entry(frame3, textvariable=entry3, width=60)
+    StringVar_path_Output = StringVar()
+    IFileEntry = ttk.Entry(frame3, textvariable=StringVar_path_Output, width=60)
     IFileEntry.insert(0,os.path.abspath(def_path_Output))
     IFileEntry.pack(side=LEFT)
 
@@ -110,13 +130,22 @@ if __name__ == "__main__":
     frame4 = ttk.Frame(root, padding=10)
     frame4.grid(row=4, column=1, sticky=E)
 
+
     # 実行ボタンの設置
     button1 = ttk.Button(frame4, text="PDF出力", command=conductMain)
     button1.pack(fill = "x", padx=30, side = "left")
 
-    # Frame5の作成
-    frame5 = ttk.Frame(root, padding=10)
-    frame5.grid(row=5, column=1, sticky=E)
+    IDirLabe_State = ttk.Label(frame4, text="出力状態", padding=(5, 2))
+    IDirLabe_State.pack(side=LEFT)
+
+    # 「ファイル参照」ラベルの作成
+    StringVar_State = StringVar()
+    StateStra = ttk.Entry(frame4, textvariable=StringVar_State, width=60)
+    StateStra.insert(0,' ')
+    StateStra.pack(side=LEFT)
 
 
     root.mainloop()
+
+if __name__ == "__main__":
+    main()
