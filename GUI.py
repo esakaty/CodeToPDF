@@ -29,14 +29,27 @@ def dirdialog_clicked3():
     StringVar_path_Output.set(iDirPath)
     
 # 実行ボタン押下時の実行関数
-
+#Todo:ボタンの無効化処理が仮実装
+RunFlg = True
 def StateUpdate():
-    for i in range(100):
+    button1['state'] = "disable" 
+    RunFlg = True
+    while(DiffAndPDF.StringState != '完了'):
         StringVar_State.set(DiffAndPDF.StringState)
         time.sleep(1)
+    button1['state'] = "enable"
+
+#変換処理のコール(スレッド用)
+def RunOperation(abspath_Before,abspath_After,abspath_Output):
+    try:
+        DiffAndPDF.CodeToPdf(abspath_Before,abspath_After,abspath_Output)
+        RunFlg = False
+    except Exception as e:
+        messagebox.showerror("error", e)
+        RunFlg = False
+
 
 def conductMain():
-    text = ""
 
     path_Before = StringVar_path_Before.get()
     path_After  = StringVar_path_After.get()
@@ -46,27 +59,27 @@ def conductMain():
         abspath_Before = os.path.abspath(path_Before)
         abspath_After  = os.path.abspath(path_After)
         abspath_Output = os.path.abspath(path_Output)
-        try:
             
-            th1 = threading.Thread( \
-                target=DiffAndPDF.CodeToPdf, \
-                args=(abspath_Before,abspath_After,abspath_Output))
+        th1 = threading.Thread( \
+            target=RunOperation, \
+            args=(abspath_Before,abspath_After,abspath_Output))
+            
+        th2 = threading.Thread( \
+            target=StateUpdate)
+        th1.start()
+        th2.start()
                 
-            th2 = threading.Thread( \
-                target=StateUpdate)
-            th1.start()
-            th2.start()
-                
-        except Exception as e:
-            messagebox.showerror("error", e)
     else:
         messagebox.showerror("error", "パスの指定がありません。")
+
+     
 
 def main():
     global StringVar_path_Before
     global StringVar_path_After
     global StringVar_path_Output
     global StringVar_State
+    global button1
 
     # rootの作成
     root = Tk()
