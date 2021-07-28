@@ -19,9 +19,7 @@ import win32com.client
 #インストールは以下
 #pip install pyinstaller
 #実行はコマンドプロンプトで
-#pyinstaller CodeToPDF.py --onefile  
-#
-#
+#pyinstaller GUI.py --onefile  --noconsole
 
 path_Null = 'null.txt'
 path_Winmerge = r'C:/Program Files/WinMerge/WinMergeU.exe'
@@ -153,6 +151,7 @@ def HtmlToPDF_with_Excel(HtmlFile,PDFFile):
     #htmlをエクセルで開く
     pythoncom.CoInitialize()  # Excelを起動する前にこれを呼び出す
     excel = win32com.client.Dispatch("Excel.Application")
+    excel.visible = False
     file = excel.Workbooks.Open(HtmlFile, UpdateLinks=0, ReadOnly=True)
     file.WorkSheets(1).Select()
 
@@ -162,12 +161,19 @@ def HtmlToPDF_with_Excel(HtmlFile,PDFFile):
     file.WorkSheets(1).Columns(3).ColumnWidth = 5
     file.WorkSheets(1).Columns(4).ColumnWidth = 100
 
+    
+    file.WorkSheets(1).Pagesetup.PrintTitleRows  = "$1:$1"
+    file.WorkSheets(1).Cells.Font.Size = 8
+    file.WorkSheets(1).Cells.Font.Name = "Consolas"
+
     #印刷設定
     file.WorkSheets(1).Pagesetup.Zoom  = False
     file.WorkSheets(1).Pagesetup.Orientation = 2
     file.WorkSheets(1).Pagesetup.FitToPagesWide = 1
+    file.WorkSheets(1).Pagesetup.FitToPagesTall = False
     file.WorkSheets(1).Pagesetup.CenterHorizontally = True
 
+    file.WorkSheets(1).Pagesetup.Papersize = 8
     file.WorkSheets(1).Pagesetup.RightMargin = 1
     file.WorkSheets(1).Pagesetup.LeftMargin = 1
     file.WorkSheets(1).Pagesetup.TopMargin = 1

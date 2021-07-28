@@ -37,6 +37,7 @@ def StateUpdate():
     while(DiffAndPDF.StringState != '完了'):
         StringVar_State.set(DiffAndPDF.StringState)
         time.sleep(1)
+    StringVar_State.set('完了')
     button1['state'] = "enable"
 
 #変換処理のコール(スレッド用)
