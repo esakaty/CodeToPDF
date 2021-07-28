@@ -39,12 +39,10 @@ def TestMain():
     abspath_Output = os.path.abspath(path_Output)
     CodeToPdf(abspath_Before,abspath_After,abspath_Output)
     
-def getState():
-    return StringState
-
 
 def CodeToPdf(abspath_Before,abspath_After,abspath_Output):
     global StringState
+    global StopRequest
     StringState = ''
 
     #絶対パスに変更
@@ -87,49 +85,51 @@ def CodeToPdf(abspath_Before,abspath_After,abspath_Output):
         reader = csv.reader(f)
         DiffList = [row for row in reader]
 
+    StopRequest = False
     for i in range(len(DiffList)):
-        #テスト：出力先htmlの文字列生成
-        subfolder = ''
-        path_File_Before     =  ''
-        path_File_After      =  ''
-        path_File_Report     =  ''
-        path_File_PDF        =  ''
-        if (i > 3) & (len(DiffList[i]) > 1):
-            if (DiffList[i][5] != "") & (DiffList[i][2] != tag_File_Same):
-                #サブフォルダのパスとフォルダ出力用のサブフォルダ名生成
-                if(DiffList[i][1] != ''):
-                    subfolder     = '\\'+DiffList[i][1]
-                    subfoldername = '\\'+DiffList[i][1].replace('\\','＞')+'＞'
-                else:
-                    subfolder     = ''
-                    subfoldername = ''
+        if(StopRequest == False):
+            #テスト：出力先htmlの文字列生成
+            subfolder = ''
+            path_File_Before     =  ''
+            path_File_After      =  ''
+            path_File_Report     =  ''
+            path_File_PDF        =  ''
+            if (i > 3) & (len(DiffList[i]) > 1):
+                if (DiffList[i][5] != "") & (DiffList[i][2] != tag_File_Same):
+                    #サブフォルダのパスとフォルダ出力用のサブフォルダ名生成
+                    if(DiffList[i][1] != ''):
+                        subfolder     = '\\'+DiffList[i][1]
+                        subfoldername = '\\'+DiffList[i][1].replace('\\','＞')+'＞'
+                    else:
+                        subfolder     = ''
+                        subfoldername = ''
 
-                #比較ファイルのパス生成
-                #片方しかない場合はnull.txtと比較する。
-                if(DiffList[i][2].startswith(tag_File_OnlyAfter)):
-                    path_File_After  = abspath_After  + subfolder+'\\' + DiffList[i][0]
-                    path_File_Before = abspath_Null
-                elif(DiffList[i][2].startswith(tag_File_OnlyBefore)):
-                    path_File_After  = abspath_Null
-                    path_File_Before = abspath_Before + subfolder+'\\' + DiffList[i][0]
-                else:
-                    path_File_After  = abspath_After  + subfolder+'\\' + DiffList[i][0]
-                    path_File_Before = abspath_Before + subfolder+'\\' + DiffList[i][0]
+                    #比較ファイルのパス生成
+                    #片方しかない場合はnull.txtと比較する。
+                    if(DiffList[i][2].startswith(tag_File_OnlyAfter)):
+                        path_File_After  = abspath_After  + subfolder+'\\' + DiffList[i][0]
+                        path_File_Before = abspath_Null
+                    elif(DiffList[i][2].startswith(tag_File_OnlyBefore)):
+                        path_File_After  = abspath_Null
+                        path_File_Before = abspath_Before + subfolder+'\\' + DiffList[i][0]
+                    else:
+                        path_File_After  = abspath_After  + subfolder+'\\' + DiffList[i][0]
+                        path_File_Before = abspath_Before + subfolder+'\\' + DiffList[i][0]
 
-                #出力ファイルパス生成
-                path_File_Report     = abspath_OutputTmp + subfoldername + DiffList[i][0] + '.html'
-                path_File_PDF        = abspath_Output    + subfoldername + DiffList[i][0] + '.pdf'
+                    #出力ファイルパス生成
+                    path_File_Report     = abspath_OutputTmp + subfoldername + DiffList[i][0] + '.html'
+                    path_File_PDF        = abspath_Output    + subfoldername + DiffList[i][0] + '.pdf'
 
-                #比較レポート生成(csvファイル生成)
-                
-                StringState ='PDF出力：' + subfoldername + DiffList[i][0]
-                MakeDiff_ReportFile( \
-                    path_File_Before, \
-                    path_File_After, \
-                    path_File_Report)
+                    #比較レポート生成(csvファイル生成)
+                    
+                    StringState ='PDF出力：' + subfoldername + DiffList[i][0]
+                    MakeDiff_ReportFile( \
+                        path_File_Before, \
+                        path_File_After, \
+                        path_File_Report)
 
-                #PDFへ変換
-                HtmlToPDF_with_Excel(path_File_Report,path_File_PDF)
+                    #PDFへ変換
+                    HtmlToPDF_with_Excel(path_File_Report,path_File_PDF)
 
     StringState = '完了'
 

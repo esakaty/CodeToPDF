@@ -12,6 +12,9 @@ def_path_Before = 'target/Before/'
 def_path_After  = 'target/After/'
 def_path_Output = 'target/Output/'
 
+class InterFace:
+    ButtonState = 0
+
 # フォルダ指定の関数
 def dirdialog_clicked():
     iDir = os.path.abspath(os.path.dirname(__file__))
@@ -30,28 +33,25 @@ def dirdialog_clicked3():
     
 # 実行ボタン押下時の実行関数
 #Todo:ボタンの無効化処理が仮実装
-RunFlg = True
 def StateUpdate():
-    button1['state'] = "disable" 
-    RunFlg = True
+    button1['text']= "中断" 
     while(DiffAndPDF.StringState != '完了'):
         StringVar_State.set(DiffAndPDF.StringState)
         time.sleep(1)
     StringVar_State.set('完了')
-    button1['state'] = "enable"
+    button1['state'] = "enable" 
+    button1['text']= "PDF出力" 
+    InterFace.ButtonState = 0
 
 #変換処理のコール(スレッド用)
 def RunOperation(abspath_Before,abspath_After,abspath_Output):
     try:
         DiffAndPDF.CodeToPdf(abspath_Before,abspath_After,abspath_Output)
-        RunFlg = False
     except Exception as e:
         messagebox.showerror("error", e)
-        RunFlg = False
 
-
+#スレッド起動用処理
 def conductMain():
-
     path_Before = StringVar_path_Before.get()
     path_After  = StringVar_path_After.get()
     path_Output = StringVar_path_Output.get()
@@ -60,15 +60,21 @@ def conductMain():
         abspath_Before = os.path.abspath(path_Before)
         abspath_After  = os.path.abspath(path_After)
         abspath_Output = os.path.abspath(path_Output)
-            
-        th1 = threading.Thread( \
-            target=RunOperation, \
-            args=(abspath_Before,abspath_After,abspath_Output))
-            
-        th2 = threading.Thread( \
-            target=StateUpdate)
-        th1.start()
-        th2.start()
+
+        if (InterFace.ButtonState == 0):
+            InterFace.ButtonState = 1
+            DiffAndPDF.StringState = ""
+            th1 = threading.Thread( \
+                target=RunOperation, \
+                args=(abspath_Before,abspath_After,abspath_Output))
+                
+            th2 = threading.Thread( \
+                target=StateUpdate)
+            th1.start()
+            th2.start()
+        else:
+            button1['state'] = "disable" 
+            DiffAndPDF.StopRequest = True
                 
     else:
         messagebox.showerror("error", "パスの指定がありません。")
@@ -81,6 +87,8 @@ def main():
     global StringVar_path_Output
     global StringVar_State
     global button1
+
+    ButtonState = 0
 
     # rootの作成
     root = Tk()
